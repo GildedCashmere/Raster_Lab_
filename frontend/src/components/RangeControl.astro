@@ -1,0 +1,10 @@
+---
+interface Props { name: string; label: string; min?: number; max?: number; step?: number; value?: number; suffix?: string; description?: string; }
+const { name, label, min = 0, max = 2, step = 0.01, value = 1, suffix = '', description } = Astro.props;
+---
+<div class="range-control">
+  <div class="range-label"><label for={name}>{label}</label><output id={`${name}-value`} class="sr-only" for={name}>{step === 1 ? value : value.toFixed(2)}</output><input id={`${name}-number`} name={`${name}_numeric`} data-range={name} type="number" inputmode={step === 1 ? 'numeric' : 'decimal'} min={min} max={max} step={step} value={value} aria-label={`${label}, numerical value${suffix === '%' ? ' in percent' : ''}`} aria-describedby={`${name}-error${description ? ` ${name}-hint` : ''}`} />{suffix && <span class="range-suffix" aria-hidden="true">{suffix}</span>}</div>
+  <input id={name} name={name} type="range" min={min} max={max} step={step} value={value} aria-describedby={description ? `${name}-hint` : undefined} />
+  {description && <p id={`${name}-hint`} class="control-hint">{description}</p>}
+  <p id={`${name}-error`} class="field-error" hidden>Enter a value within the allowed range.</p>
+</div>

@@ -1,0 +1,18 @@
+---
+import Math from './Math.astro';
+import { education } from '../content/education';
+import type { ToolId } from '../tools';
+interface Props { tool: ToolId }
+const { tool } = Astro.props;
+const lesson = education[tool];
+---
+<section id="how-it-works" class="education" aria-labelledby="how-it-works-heading" tabindex="-1">
+  <div class="reading-column">
+    <header class="education-intro"><h2 id="how-it-works-heading">How it works</h2><p>{lesson.introduction}</p></header>
+    {lesson.topics.map(topic => <section class="education-topic" aria-labelledby={`learn-${topic.id}`}>
+      <h3 id={`learn-${topic.id}`}>{topic.title}</h3>
+      {topic.blocks.map(block => block.kind === 'paragraph' ? <p>{block.text}</p> : block.kind === 'equation' ? <Math class="education-equation" tex={block.tex} label={block.label} /> : <ul>{block.items.map(item => <li>{item}</li>)}</ul>)}
+    </section>)}
+    <p class="education-workflow">Every Apply uses the original upload and the current settings; edits do not accumulate. Python returns the PNG used for both preview and download. For formats, limits and image handling, read the <a href="/faq">FAQ</a>.</p>
+  </div>
+</section>

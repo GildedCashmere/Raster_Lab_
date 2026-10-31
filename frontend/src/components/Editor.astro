@@ -1,0 +1,99 @@
+---
+import Icon from './Icon.astro';
+import RangeControl from './RangeControl.astro';
+import KernelControls from './KernelControls.astro';
+import KernelPanel from './KernelPanel.astro';
+import HowItWorks from './HowItWorks.astro';
+import Math from './Math.astro';
+import { formulaFor, adjustments, optionalGamma, convolution, intensity, sobelConstruction } from '../math-definitions';
+import { uploadLimitLabel, pixelLimitLabel } from '../config';
+import { tools, operations, type Operation, type ToolId } from '../tools';
+interface Props { tool: ToolId }
+const { tool } = Astro.props;
+const adjustable = tool === 'gamma' || tool === 'contrast';
+const spatial = tool === 'spatial' || tool === 'edges';
+const choices: Operation[] = tool === 'geometry' ? ['horizontal_flip', 'vertical_flip', 'rotate_90', 'rotate_180', 'rotate_270'] : tool === 'point' ? ['grayscale', 'inversion'] : tool === 'spatial' ? ['blur', 'sharpen', 'emboss'] : [];
+const defaultOperation = tools[tool].defaultOperation as Operation;
+const initial = operations[defaultOperation];
+---
+<div class="editor-shell">
+  <aside class="controls" aria-label="Image and operation controls">
+    <section aria-labelledby="upload-heading">
+      <h2 id="upload-heading">Your image</h2>
+      <div id="drop-zone" class="drop-zone">
+        <span class="upload-icon"><Icon name="upload" size={24} /></span>
+        <p>Drop an image here</p><span class="or-text">or choose one from your device</span>
+        <button id="choose-file" class="button button-outline" type="button">Choose image</button>
+        <label class="sr-only" for="file-input">Choose a JPEG, PNG, or WebP image</label>
+        <input id="file-input" class="sr-only" type="file" name="image" accept="image/jpeg,image/png,image/webp" tabindex="-1" />
+        <small>JPEG, PNG, WebP · Up to {uploadLimitLabel} / {pixelLimitLabel}</small>
+      </div>
+      <p id="file-name" class="file-name" title="">No image selected</p>
+      {tool === 'contrast' && <p class="upload-disclosure">On upload, Python reads your image’s automatic range. Images are not retained.</p>}
+    </section>
+    <form id="transform-form" autocomplete="off">
+      {choices.length > 0 && <fieldset id="operations"><legend>{tool === 'geometry' ? 'Transform' : 'Operation'}</legend><div class="operation-list">
+        {choices.map((value, index) => <label class="operation"><input type="radio" name="operation" value={value} checked={index === 0} /><span class="operation-icon"><Icon name={operations[value].icon} size={22} /></span><span class="operation-text"><strong>{operations[value].name}</strong><small>{operations[value].description}</small></span><span class="radio-dot" aria-hidden="true"></span></label>)}
+      </div></fieldset>}
+      {choices.length === 0 && <input type="hidden" name="operation" value={defaultOperation} />}
+      {spatial && <KernelControls edges={tool === 'edges'} />}
+      {tool === 'glitch' && <fieldset class="glitch-controls"><legend>Signal effects</legend>
+        <RangeControl name="shift" label="RGB Shift" min={0} max={100} step={1} value={0} suffix="%" description="Separate colour channels horizontally." />
+        <RangeControl name="tear" label="Horizontal Tearing" min={0} max={100} step={1} value={0} suffix="%" description="Displace horizontal bands of pixels." />
+        <RangeControl name="noise" label="Static Noise" min={0} max={100} step={1} value={0} suffix="%" description="Add random intensity fluctuations." />
+        <RangeControl name="scanlines" label="Scanlines" min={0} max={100} step={1} value={0} suffix="%" description="Darken alternating rows." />
+        <button id="surprise" class="button button-surprise" type="button">Surprise me <span aria-hidden="true">✨</span></button>
+        <p class="control-hint">Balanced settings and a fresh seed. With an image loaded, this also applies the effect once.</p>
+      </fieldset>}
+      {tool === 'contrast' && <fieldset id="contrast-bounds" disabled><legend>Input range</legend>
+        <RangeControl name="black_point" label="Input black point · a" min={0} max={254} step={1} value={0} />
+        <RangeControl name="white_point" label="Input white point · b" min={1} max={255} step={1} value={255} />
+        <div class="auto-range-row"><button id="auto-range" class="button button-outline" type="button">Auto-range</button><span>Output: 0–255</span></div>
+        <p id="range-note" class="control-hint" role="status">Upload an image to read its visible RGB range.</p>
+      </fieldset>}
+      {tool === 'gamma' && <fieldset><legend>Gamma</legend><RangeControl name="gamma" label="Gamma · γ" min={0.1} max={3} value={1} /><p class="control-hint">Below 1 brightens. Above 1 darkens.<br />1 leaves base values unchanged.</p></fieldset>}
+      {adjustable && <details class="adjustments"><summary><span>{tool === 'contrast' ? 'Adjustments after stretch' : 'Colour adjustments'}</span><span class="expand-icon" aria-hidden="true">+</span></summary>
+        <div class="adjustment-controls">
+          {tool === 'contrast' && <><RangeControl name="gamma" label="Optional gamma · γ" min={0.1} max={3} /><p class="control-hint">1 is neutral. Below 1 brightens; above 1 darkens.</p></>}
+          <RangeControl name="red_gain" label="Red gain" /><RangeControl name="green_gain" label="Green gain" /><RangeControl name="blue_gain" label="Blue gain" /><RangeControl name="saturation" label="Saturation · s" />
+          <p class="control-hint">Saturation 0 gives grayscale; 1 keeps saturation unchanged; above 1 increases colourfulness.</p>
+        </div>
+      </details>}
+      <p class="original-note"><Icon name="info" size={16} /><span>Each Apply starts from your original. Edits don’t accumulate.</span></p>
+      <button id="apply" class="button button-primary" type="submit" disabled><span id="apply-text">Apply transformation</span><Icon name="arrow" size={18} /></button>
+    </form>
+  </aside>
+  <section class="workspace" aria-labelledby="preview-heading">
+    <div class="workspace-toolbar"><div><h2 id="preview-heading">Image preview</h2><p>Your original, alongside your result.</p></div><button id="reset" type="button" class="button button-quiet" disabled><Icon name="reset" size={17} />Reset</button></div>
+    <section class="formula-panel" aria-labelledby="formula-heading">
+      <div class="formula-heading-row"><h2 id="formula-heading">{initial.name}</h2><span>{tool === 'geometry' ? 'Coordinate mapping' : 'Pixel mathematics'}</span></div>
+      <Math id="formula-equation" tex={formulaFor(defaultOperation)} label="Selected operation formula" />
+      <Math id="formula-values" class="formula-values" tex={tool === 'glitch' ? String.raw`d=0,\quad A=0,\quad q=1,\quad \mathrm{seed}=0` : spatial ? 'N=3' : tool === 'gamma' ? String.raw`\gamma=1` : String.raw`a=0,\;b=255`} hidden={!adjustable && !spatial && tool !== 'glitch'} label="Current parameter values" />
+      <p id="formula-description" class="formula-description">{initial.explanation}</p>
+      {adjustable && <p class="processing-order visible-order">{tool === 'gamma' ? 'Original → gamma → RGB gains → saturation → final output' : 'Original → contrast stretch → optional gamma → RGB gains → saturation → final output'}</p>}
+      {tool === 'glitch' && <p class="processing-order visible-order">Original RGB → RGB separation → tearing → static noise → scanlines → round & clip → restore source alpha</p>}
+      {tool === 'geometry' && <p class="formula-symbols">I = original, O = output; x = column, y = row; W = original width, H = original height. Indices start at 0.</p>}
+    </section>
+    <div class="previews" id="previews" aria-busy="false">
+      <figure class="preview-panel"><figcaption><h3>Original</h3><span class="preview-tag">Source</span></figcaption><div class="image-stage"><div class="preview-empty" id="original-empty"><span class="empty-icon"><Icon name="image" size={32} /></span><strong>Your starting point</strong><p>Upload an image to see it here.</p></div><img id="original-image" alt="Original uploaded image" width="1" height="1" hidden /></div><div class="preview-meta"><span id="original-dimensions">No image loaded</span><span id="original-format">Original file</span></div></figure>
+      <figure class="preview-panel"><figcaption><h3>Processed</h3><span class="preview-tag result-tag" id="result-tag">Awaiting image</span></figcaption><div class="image-stage"><div class="preview-empty" id="output-empty"><span class="empty-icon"><Icon name="image" size={32} /></span><strong>A new point of view</strong><p>Choose your settings, then Apply.</p></div><img id="output-image" alt="Processed image" width="1" height="1" hidden /><div id="loading-overlay" class="loading-overlay" hidden><span class="spinner" aria-hidden="true"></span><strong>Processing your image…</strong><span>Using the Python backend</span></div></div><div class="preview-meta"><span id="output-dimensions">No operation applied</span><span>PNG output</span></div></figure>
+    </div>
+    <div class="workspace-bottom"><p class="quality-note"><Icon name="check" size={17} />Full resolutions as well as image transparency (Alpha) is preserved</p><button id="download" type="button" class="button button-download" disabled><Icon name="download" size={18} />Download PNG</button></div>
+    <div id="status" class="status" role="status" aria-live="polite" aria-atomic="true"><span class="status-dot" aria-hidden="true"></span><span id="status-text">Ready when you are. Start by choosing an image.</span></div>
+      {adjustable && <details class="formula-details"><summary>Adjustment formulas & order<span aria-hidden="true">+</span></summary><div>
+        {tool === 'contrast' && <Math tex={optionalGamma} label="Optional gamma after stretching" />}
+        <Math tex={adjustments} />
+        <p>C is a current colour channel. Compute Y after the gains. s = 0 gives grayscale, s = 1 leaves saturation unchanged, and s &gt; 1 increases colourfulness. Y approximates intensity/luma, not physical luminance.</p><p>{tool === 'contrast' ? 'Clipping in the base stretch is part of its formula. ' : ''}Keep floating-point precision through all adjustments, then round and clip to 0–255 once. Alpha is unchanged.</p>
+      </div></details>}
+    {spatial && <details class="formula-details convolution-details"><summary>Convolution, padding & display<span aria-hidden="true">+</span></summary><div>
+      <Math tex={convolution} label="True convolution sum" />
+      <p>Reflect padding mirrors pixels beyond each border, excluding the edge sample. The minus signs in the coordinates express true kernel reversal; correlation would use plus signs. Dimensions stay unchanged.</p>
+      {(tool === 'edges' || tool === 'spatial') && <Math tex={intensity} label="Intensity approximation" />}
+      <p>Emboss and Sobel use this floating-point intensity/luma approximation. Blur and sharpen filter RGB independently. Keep signed floating-point values, then round and clip to 0–255 only at export. Alpha is copied unchanged.</p>
+      {tool === 'edges' && <><Math tex={sobelConstruction} label="Generalized Sobel kernel construction" /><p>S is the binomial smoothing vector; D is its derivative construction using full one-dimensional convolution. The outer products form actual N×N kernels, each normalized by its absolute sum.</p></>}
+    </div></details>}
+    {spatial && <KernelPanel />}
+  </section>
+</div>
+<HowItWorks tool={tool} />
+<script>import '../scripts/editor';</script>

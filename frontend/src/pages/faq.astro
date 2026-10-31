@@ -1,0 +1,14 @@
+﻿---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import Math from '../components/Math.astro';
+import { faq } from '../content/faq';
+---
+<SiteLayout page="faq" title="Frequently Asked Questions" description="Formats, image limits, transparency and the mathematics behind Raster Lab’s six image-processing tools.">
+  <div class="faq-heading reading-column"><h1>Frequently Asked Questions</h1><p>Practical answers about the tools, their mathematics and the files they produce.</p></div>
+  <section class="faq-list reading-column" aria-label="Questions and answers">
+    {faq.map((item, index) => <details class="faq-card" id={`question-${index + 1}`}>
+      <summary><span>{item.question}</span><span class="faq-indicator" aria-hidden="true"></span></summary>
+      <div class="faq-answer">{item.paragraphs.map(paragraph => <p>{paragraph}</p>)}{'equation' in item && item.equation && <Math tex={item.equation} label="Raster Lab direct-exponent gamma formula" />}</div>
+    </details>)}
+  </section>
+</SiteLayout>

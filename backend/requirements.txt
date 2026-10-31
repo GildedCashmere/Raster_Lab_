@@ -1,0 +1,7 @@
+fastapi[standard]
+numpy
+Pillow
+python-multipart
+pytest
+httpx
+pydantic>=2,<3

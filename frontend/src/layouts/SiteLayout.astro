@@ -1,0 +1,50 @@
+---
+import Icon from '../components/Icon.astro';
+import brandMark from '../../public/favicon.svg?raw';
+import '../styles/editor.css';
+import 'katex/dist/katex.min.css';
+import '@fontsource/barlow-condensed/latin-700.css';
+import { tools, type ToolId } from '../tools';
+interface Props { page: ToolId | 'faq'; title: string; description: string; }
+const { page, title, description } = Astro.props;
+const isTool = page !== 'faq';
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f6f3ec" />
+    <script is:inline>
+      (() => {
+        let saved;
+        try { saved = localStorage.getItem('raster-theme'); } catch {}
+        const theme = saved === 'light' || saved === 'dark' ? saved : matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.style.colorScheme = theme;
+        document.querySelector('meta[name="theme-color"]').content = theme === 'dark' ? '#0b1016' : '#f6f3ec';
+      })();
+    </script>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="description" content={description} />
+    <title>{title} · Raster Lab</title>
+  </head>
+  <body>
+    <a class="skip-link" href={isTool ? '#editor' : '#faq-content'}>{isTool ? 'Skip to image editor' : 'Skip to frequently asked questions'}</a>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Raster Lab, flip and rotate"><span class="brand-mark" aria-hidden="true" set:html={brandMark} />Raster<span class="brand-light">Lab</span></a>
+      <span class="header-note">An image processing workbench</span>
+      <div class="header-actions">{isTool && <a href="#how-it-works" class="about-link">How it works <Icon name="info" size={17} /></a>}<button id="theme-toggle" class="button button-outline theme-toggle" type="button" aria-label="Dark mode" aria-pressed="false"><span aria-hidden="true">◐</span>Dark mode</button></div>
+    </header>
+    <nav class="tool-nav" aria-label="Tools and help">
+      {Object.entries(tools).map(([id, item]) => <a href={item.route} aria-current={id === page ? 'page' : undefined}>{item.label}</a>)}
+      <a class="faq-nav" href="/faq" aria-current={page === 'faq' ? 'page' : undefined}>FAQ</a>
+    </nav>
+    <main id={isTool ? 'editor' : 'faq-content'} tabindex="-1" data-tool={isTool ? page : undefined} class:list={{ 'faq-page': !isTool }}>
+      <slot />
+      <footer><span>Raster Lab</span><span>Built around the mathematics of images.</span></footer>
+    </main>
+    {isTool && <noscript><p class="noscript">Explanations and equations are available below. Enable JavaScript to upload and process images with the Python backend.</p></noscript>}
+    <script>import '../scripts/theme';</script>
+  </body>
+</html>

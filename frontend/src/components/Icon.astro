@@ -1,0 +1,17 @@
+---
+interface Props { name: string; size?: number; }
+const { name, size = 20 } = Astro.props;
+const paths: Record<string, string> = {
+  upload: 'M12 16V3m-5 5 5-5 5 5M4 15v5h16v-5',
+  image: 'M3 3h18v18H3z M3 17l6-6 4 4 3-3 5 5 M15 7h.01',
+  horizontal: 'M12 3v18M3 8h5v8H3zM16 8h5v8h-5z',
+  vertical: 'M3 12h18M8 3h8v5H8zM8 16h8v5H8z',
+  rotate: 'M20 9a8 8 0 1 0 0 6M20 3v6h-6',
+  reset: 'M4 9a8 8 0 1 1 0 6M4 3v6h6',
+  download: 'M12 3v12m-5-5 5 5 5-5M4 17v4h16v-4',
+  arrow: 'M4 12h16m-6-6 6 6-6 6',
+  check: 'm5 12 4 4L19 6',
+  info: 'M12 11v6m0-10v.01M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0',
+};
+---
+<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={paths[name] ?? paths.image} /></svg>

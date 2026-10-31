@@ -1,0 +1,6 @@
+---
+import { mathHtml } from '../math-render';
+interface Props { tex: string; id?: string; class?: string; hidden?: boolean; label?: string; }
+const { tex, id, class: className = '', hidden = false, label = 'Mathematical equation' } = Astro.props;
+---
+<div id={id} class:list={['math-block', className]} data-tex={tex} hidden={hidden} translate="no" tabindex="0" role="region" aria-label={label} set:html={mathHtml(tex)} />

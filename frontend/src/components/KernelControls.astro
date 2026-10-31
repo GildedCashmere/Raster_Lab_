@@ -1,0 +1,25 @@
+---
+import RangeControl from './RangeControl.astro';
+import { BOX_SIZES, DERIVATIVE_SIZES } from '../kernel-sizes';
+interface Props { edges: boolean }
+const { edges } = Astro.props;
+const sizes = edges ? DERIVATIVE_SIZES : BOX_SIZES;
+---
+<fieldset class="kernel-size-controls">
+  <legend>Neighbourhood</legend>
+  <div class="range-control">
+    <div class="range-label"><label for="kernel_size">Kernel size · N</label><output id="kernel_size-value" for="kernel_size">3×3</output></div>
+    <input id="kernel_size" name="kernel_size" type="range" min="0" max={sizes.length - 1} step="1" value="0" aria-valuetext="3 by 3" aria-describedby="kernel-size-help" />
+    <div class="kernel-stops" aria-hidden="true">{sizes.map(size => <span data-size={size} data-selected={size === 3 ? 'true' : 'false'}>{size}×{size}</span>)}</div>
+  </div>
+  <p id="kernel-size-help" class="control-hint">{edges ? 'Five sizes, up to 11×11.' : 'Seven sizes, up to 31×31.'} The selected size changes the actual neighbourhood.</p>
+</fieldset>
+{!edges && <>
+  <fieldset id="sharpen-controls" class="filter-options" hidden disabled><legend>Sharpening</legend><RangeControl name="amount" label="Sharpening amount · a" /><p class="control-hint">0 leaves the original unchanged; 1 is the default; 2 strengthens detail.</p></fieldset>
+  <fieldset id="emboss-controls" class="filter-options" hidden disabled><legend>Relief</legend><RangeControl name="strength" label="Emboss strength · t" /><label class="check-control"><input id="reverse_relief" name="reverse_relief" type="checkbox" /><span>Reverse relief</span></label></fieldset>
+</>}
+{edges && <fieldset id="sobel-controls" class="filter-options"><legend>Edge output</legend>
+  <label class="check-control"><input id="binary_threshold" name="binary_threshold" type="checkbox" /><span>Binary threshold</span></label>
+  <div id="threshold-controls" hidden><RangeControl name="threshold" label="Threshold · T" min={0} max={255} step={1} value={128} /><p class="control-hint">White where normalized magnitude ≥ T; black otherwise. Threshold 0 makes every pixel white.</p></div>
+  <p class="control-hint">Off by default: continuous grayscale edges. Larger Sobel kernels smooth more broadly and may change fine-edge detail.</p>
+</fieldset>}

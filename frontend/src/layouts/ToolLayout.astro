@@ -1,0 +1,11 @@
+﻿---
+import SiteLayout from './SiteLayout.astro';
+import { tools, type ToolId } from '../tools';
+interface Props { tool: ToolId }
+const { tool } = Astro.props;
+const current = tools[tool];
+---
+<SiteLayout page={tool} title={current.label} description={`${current.description} Compare the original and download a full-resolution PNG processed with Python.`}>
+  <div class="page-intro"><div><span class="eyebrow">Image processing / {String(Object.keys(tools).indexOf(tool) + 1).padStart(2, '0')}</span><h1>{current.label}</h1><p>{current.description}</p></div><span class="workspace-label"><span></span>Original in. New perspective out.</span></div>
+  <slot />
+</SiteLayout>
