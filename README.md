@@ -35,7 +35,7 @@ Both themes share a CSS technical grid, amber selection/control accents, thin bo
 
 Body type uses reliable system fonts; condensed headings use locally bundled Barlow Condensed. KaTeX is an npm dependency: `SiteLayout.astro` imports its CSS/font assets through Vite, with no runtime CDN. `math-definitions.ts` owns the trusted LaTeX templates, `Math.astro` renders initial equations during the static build, and `math-render.ts` targets only changed equation nodes in the browser. Rendering uses HTML **and MathML**, `trust: false`, finite numerical substitutions and a graceful explanatory fallback. Longer equations have local keyboard-accessible scrolling; mathematical fonts remain intact. Geometry mappings, grayscale/inversion, direct gamma, contrast, gains/saturation, convolution, emboss and Sobel are typeset consistently.
 
-The [Vayce gamma tool](https://vayce.app/tools/gamma-correction/) was visually inspected in light/dark for inspiration. Raster Lab preserves its own branding, original-based Python processing and **input^gamma** convention. Reference captures and earlier editor screenshots remain in [docs/design](docs/design/). Current screenshots: [education in light](docs/design/raster-education-light.png), [education in dark](docs/design/raster-education-dark.png), [FAQ in light](docs/design/raster-faq-light.png), [FAQ in dark](docs/design/raster-faq-dark.png), and [R at favicon sizes](docs/design/raster-r-sizes.png).
+ Reference captures and earlier editor screenshots remain in [docs/design](docs/design/). Current screenshots: [education in light](docs/design/raster-education-light.png), [education in dark](docs/design/raster-education-dark.png), [FAQ in light](docs/design/raster-faq-light.png), [FAQ in dark](docs/design/raster-faq-dark.png), and [R at favicon sizes](docs/design/raster-r-sizes.png).
 
 ### Reading sections, FAQ and branding
 
@@ -47,8 +47,6 @@ The shared type tokens use a 16px body, 14-15px supporting/control text, 12px se
 - `frontend/src/components/HowItWorks.astro` and `frontend/src/content/education.ts`: static semantic educational content and KaTeX equations.
 - `frontend/src/pages/faq.astro` and `frontend/src/content/faq.ts`: 19 accessible native question cards about mathematics, glitch settings/repeatability, formats, dimensions, transparency, processing and the unchanged 8 MiB/12 MP limits. Full-resolution 48 MP inputs remain unsupported.
 - `frontend/public/favicon.svg`: the original geometric R, used both inline in the header and as the favicon. Header colour follows the theme accent; the standalone file has an amber fallback. No icon library or raster-generated mark is used.
-
-The requested transparency sentence appears beside every Download button and wraps naturally. The exact revised grayscale description is shared by its initial and selected states. The footer retains the wordmark and mathematics tagline.
 
 ## Glitch effect milestone
 
