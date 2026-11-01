@@ -1,6 +1,6 @@
 # Raster Lab · Image Processing Lab
 
-An Astro website with seven image editors and a dedicated FAQ page connected to a stateless FastAPI/NumPy engine for an undergraduate DSP project. Pillow handles decoding, encoding and EXIF normalization; our NumPy code performs every geometric, point, spatial and glitch operation. Preview and download use the same PNG returned by Python.
+An Astro website with seven image editors and a dedicated FAQ page connected to a stateless FastAPI/NumPy engine. Pillow handles decoding, encoding and EXIF normalization; the NumPy code performs geometric, point, spatial filtering operations. Preview and download use the same PNG returned by Python.
 
 ## Pages and workflow
 
